@@ -7,7 +7,7 @@
 #define FILE_OCC "Error: Operation file corrupted\n"
 FILE *file;
 char **zone;
-int bg_with, bg_high, ret;
+int bg_width, bg_high, ret;
 char bg_c, rect_c, type;
 float rect_with, rect_high, rect_pos_with, rect_pos_high;
 
@@ -28,7 +28,7 @@ int draw(void)
 		return -1;
 	for (int y = 0; y < bg_high; y++)
 	{
-		for (int x = 0; x < bg_with; x++)
+		for (int x = 0; x < bg_width; x++)
 		{
 			bool cond1 = !(x < rect_pos_with || y < rect_pos_high || y > (rect_pos_high + rect_high) || x > (rect_pos_with + rect_with));
 			bool cond2 = x - rect_pos_with < 1 || y - rect_pos_high < 1 || (rect_pos_high + rect_high) - y < 1 || (rect_pos_with + rect_with) - x < 1;
@@ -46,15 +46,15 @@ int main(int ac, char **av)
 	file = fopen(av[1], "r");
 	if (!(file))
 		return (ft_putstr(FILE_OCC));
-	ret = fscanf(file, "%d %d %c\n", &bg_with, &bg_high, &bg_c);
-	if (ret != 3 || bg_high <= 0 || bg_high > 300 || bg_with <= 0 || bg_with > 300)
+	ret = fscanf(file, "%d %d %c\n", &bg_width, &bg_high, &bg_c);//개행을 넣어야 다음 열에서 포인터가 대기할 수 
+	if (ret != 3 || bg_high <= 0 || bg_high > 300 || bg_width <= 0 || bg_width > 300)
 		return(ft_putstr(FILE_OCC));
 
-	zone = calloc(bg_with, sizeof(char *));
+	zone = calloc(bg_high, sizeof(char *));
 	for (int y = 0; y < bg_high; y++)
 	{
-		zone[y] = calloc(bg_with + 1, 1);
-		memset(zone[y], bg_c, bg_with);
+		zone[y] = calloc(bg_width + 1, 1);
+		memset(zone[y], bg_c, bg_width);
 	}
 
 	while ((ret = fscanf(file, "%c %f %f %f %f %c\n", &type, &rect_pos_with, &rect_pos_high, &rect_with, &rect_high, &rect_c)) != -1)
