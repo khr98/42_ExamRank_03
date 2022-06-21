@@ -23,7 +23,8 @@ int file_err(void) {
     return 1;
 }
 
-int draw(char type, float x_o, float y_o, float r, char ch) {
+int draw() 
+{
     float dis;
 
 	if ((type != 'c' && type != 'C') || r <= 0)
@@ -61,9 +62,7 @@ int main(int ac, char **av) {
     }
 
     while ((ret = fscanf(file, "%c %f %f %f %c\n", &type, &x_o, &y_o, &r, &ch)) != -1) {
-        if (ret != 5)
-            return file_err();
-        if (draw(type, x_o, y_o, r, ch) == -1)
+        if (ret != 5 || draw() == -1)
             return file_err();
     }
     for (int i = 0; i < h; i++) {
