@@ -4,21 +4,17 @@
 #include <string.h>
 #define ARG_ERR "Error: argument\n"
 #define FILE_ERR "Error: Operation file corrupted\n"
-
 int ret, bgW, bgH;
 char bgC, T, C;
 float X, Y, W, H;
-
 char **zone;
 FILE	*file;
 
 int	ft_putchar(char *str)
 {
-	int i = 0;
-	while(str[i] != 0)
+	for(int i = 0; str[i] != 0; i++)
 	{
 		write(1, &str[i], 1);
-		i++;
 	}
 	return 1;
 }
@@ -41,15 +37,14 @@ int main (int ac, char **av)
 		return(ft_putchar(FILE_ERR));
 	ret = fscanf(file, "%d %d %c\n", &bgW, &bgH ,&bgC);
 	if(ret != 3 || bgW > 300 || bgW < 1 || bgH > 300 || bgH < 1)
-		return(ft_putchar(FILE_ERR));
-	
+		return(ft_putchar(FILE_ERR));	
 	zone = malloc(bgH * sizeof(char *));
 	for(int i= 0; i < bgH; i++)
 	{
 		zone[i] = malloc(bgW * sizeof(char));
 		memset(zone[i], bgC, bgW);
 	}
-	while((ret = fscanf(file, "%c %f %f %f %f %c\n", &T, &X ,&Y ,&W, &H, &C)) != -1)
+	while((ret = fscanf(file, "%c %f %f %f %f %c\n", &T, &X ,&Y ,&W, &H, &C)) == 6)
 	{
 		if((T != 'r' && T != 'R') || W < 1 || H < 1)
 			return(ft_putchar(FILE_ERR));
