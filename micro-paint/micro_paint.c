@@ -1,69 +1,73 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #define ARG_ERR "Error: argument\n"
 #define FILE_ERR "Error: Operation file corrupted\n"
-int bgW ,bgH, ret;
-char bgC, type, color;
-float recX, recY, recW,recH;
-char **paper;
-FILE *file;
 
-int ft_putstr(char *str)
+int ret, bgW, bgH;
+char bgC, T, C;
+float X, Y, W, H;
+
+char **zone;
+FILE	*file;
+
+int	ft_putchar(char *str)
 {
-	for (int i = 0; str[i]; i++)
+	int i = 0;
+	while(str[i] != 0)
 	{
 		write(1, &str[i], 1);
+		i++;
 	}
-	return (1);
+	return 1;
 }
 
-int isInRec(int x, int y)
+int	check(int x, int y)
 {
-	if (x < recX || y < recY || (recX + recW) < x || (recY + recH) < y)
-		return (0);
-	else if (x - recX < 1.000000 || y - recY < 1.000000 || (recX + recW) - x < 1.000000 || (recY + recH) - y < 1.000000)
-		return (1);
-	return (2);
+	if (x < X || y <  Y || (X + W) < x || (Y + H) < y)
+		return 0;
+	else if (x - X < 1 || y - Y < 1 || (X + W) - x < 1 || (Y + H) - y < 1)
+		return 1;
+	return 2;
 }
 
-int main(int argc, char **argv)
+int main (int ac, char **av)
 {
-	if (argc != 2)
-		return (ft_putstr(ARG_ERR));
-	file = fopen(argv[1], "r");
-	if (file == NULL)
-		return (ft_putstr(FILE_ERR));
-	ret = fscanf(file, "%d %d %c\n", &bgW, &bgH, &bgC);
-	if (ret != 3 || bgW < 1 || bgW > 300 || bgH < 1 || bgH > 300)
-		return (ft_putstr(FILE_ERR));
-	paper = malloc(bgH * sizeof(char *));
-	for (int i = 0; i < bgH; i++)
+	if(ac != 2)
+		return(ft_putchar(ARG_ERR));
+	file = fopen(av[1], "r");
+	if(file == NULL)
+		return(ft_putchar(FILE_ERR));
+	ret = fscanf(file, "%d %d %c\n", &bgW, &bgH ,&bgC);
+	if(ret != 3 || bgW > 300 || bgW < 1 || bgH > 300 || bgH < 1)
+		return(ft_putchar(FILE_ERR));
+	
+	zone = malloc(bgH * sizeof(char *));
+	for(int i= 0; i < bgH; i++)
 	{
-		paper[i] = malloc(bgW * sizeof(char));
-		memset(paper[i], bgC, bgW);
+		zone[i] = malloc(bgW * sizeof(char));
+		memset(zone[i], bgC, bgW);
 	}
-	while ((ret = fscanf(file, "%c %f %f %f %f %c\n", &type, &recX, &recY, &recW, &recH, &color)) == 6)
+	while((ret = fscanf(file, "%c %f %f %f %f %c\n", &T, &X ,&Y ,&W, &H, &C)) != -1)
 	{
-		if ((type != 'r' && type != 'R') || recW < 1 || recH < 1)
-			return (ft_putstr(FILE_ERR));
-		for (int y = 0; y < bgH; y++)
+		if((T != 'r' && T != 'R') || W < 1 || H < 1)
+			return(ft_putchar(FILE_ERR));
+		for(int y = 0; y < bgH; y++)
 		{
-			for (int x = 0; x < bgW; x++)
+			for(int x = 0 ; x < bgW; x++)
 			{
-				int cond = isInRec(x, y);
-				if ((cond == 2 && type == 'R') || cond == 1)
-					paper[y][x] = color;
+				int cond = check(x, y);
+				if((cond == 2 && T == 'R') || cond == 1)
+					zone[y][x] = C;
 			}
 		}
 	}
 	if (ret != -1)
-		return (ft_putstr(FILE_ERR));
-	for (int i = 0; i < bgH; i++)
+		return(ft_putchar(FILE_ERR));
+	for(int i = 0 ; i < bgH; i++)
 	{
-		ft_putstr(paper[i]);
-		ft_putstr("\n");
+		ft_putchar(zone[i]);
+		ft_putchar("\n");
 	}
 }
-
