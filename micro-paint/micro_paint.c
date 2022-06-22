@@ -1,72 +1,69 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>
-#include <stdbool.h>
-#define ARGS_ERR "Error: argument\n"
-#define FILE_OCC "Error: Operation file corrupted\n"
+#define ARG_ERR "Error: argument\n"
+#define FILE_ERR "Error: Operation file corrupted\n"
+int bgW ,bgH, ret;
+char bgC, type, color;
+float recX, recY, recW,recH;
+char **paper;
 FILE *file;
-char **zone;
-int bg_width, bg_high, ret;
-char bg_c, rect_c, type;
-float rect_with, rect_high, rect_pos_with, rect_pos_high;
 
-int ft_putstr(char *s)
+int ft_putstr(char *str)
 {
-	int i = 0;
-	while (s[i])
+	for (int i = 0; str[i]; i++)
 	{
-		write(1, &s[i], 1);
-		i++;
+		write(1, &str[i], 1);
 	}
-	return 1;
+	return (1);
 }
 
-int draw(void)
+int isInRec(int x, int y)
 {
-	if ((type != 'r' && type != 'R') || rect_high <= 0 || rect_with <= 0)
-		return -1;
-	for (int y = 0; y < bg_high; y++)
+	if (x < recX || y < recY || (recX + recW) < x || (recY + recH) < y)
+		return (0);
+	else if (x - recX < 1.000000 || y - recY < 1.000000 || (recX + recW) - x < 1.000000 || (recY + recH) - y < 1.000000)
+		return (1);
+	return (2);
+}
+
+int main(int argc, char **argv)
+{
+	if (argc != 2)
+		return (ft_putstr(ARG_ERR));
+	file = fopen(argv[1], "r");
+	if (file == NULL)
+		return (ft_putstr(FILE_ERR));
+	ret = fscanf(file, "%d %d %c\n", &bgW, &bgH, &bgC);
+	if (ret != 3 || bgW < 1 || bgW > 300 || bgH < 1 || bgH > 300)
+		return (ft_putstr(FILE_ERR));
+	paper = malloc(bgH * sizeof(char *));
+	for (int i = 0; i < bgH; i++)
 	{
-		for (int x = 0; x < bg_width; x++)
+		paper[i] = malloc(bgW * sizeof(char));
+		memset(paper[i], bgC, bgW);
+	}
+	while ((ret = fscanf(file, "%c %f %f %f %f %c\n", &type, &recX, &recY, &recW, &recH, &color)) == 6)
+	{
+		if ((type != 'r' && type != 'R') || recW < 1 || recH < 1)
+			return (ft_putstr(FILE_ERR));
+		for (int y = 0; y < bgH; y++)
 		{
-			bool cond1 = !(x < rect_pos_with || y < rect_pos_high || y > (rect_pos_high + rect_high) || x > (rect_pos_with + rect_with));
-			bool cond2 = x - rect_pos_with < 1 || y - rect_pos_high < 1 || (rect_pos_high + rect_high) - y < 1 || (rect_pos_with + rect_with) - x < 1;
-			if ((cond1) && ((cond2 && type == 'r') || type == 'R'))
-				zone[y][x] = rect_c;
+			for (int x = 0; x < bgW; x++)
+			{
+				int cond = isInRec(x, y);
+				if ((cond == 2 && type == 'R') || cond == 1)
+					paper[y][x] = color;
+			}
 		}
 	}
-	return 0;
-}
-
-int main(int ac, char **av)
-{
-	if (ac != 2)
-		return (ft_putstr(ARGS_ERR));
-	file = fopen(av[1], "r");
-	if (!(file))
-		return (ft_putstr(FILE_OCC));
-	ret = fscanf(file, "%d %d %c\n", &bg_width, &bg_high, &bg_c);//개행을 넣어야 다음 열에서 포인터가 대기할 수 
-	if (ret != 3 || bg_high <= 0 || bg_high > 300 || bg_width <= 0 || bg_width > 300)
-		return(ft_putstr(FILE_OCC));
-
-	zone = calloc(bg_high, sizeof(char *));
-	for (int y = 0; y < bg_high; y++)
+	if (ret != -1)
+		return (ft_putstr(FILE_ERR));
+	for (int i = 0; i < bgH; i++)
 	{
-		zone[y] = calloc(bg_width + 1, 1);
-		memset(zone[y], bg_c, bg_width);
-	}
-
-	while ((ret = fscanf(file, "%c %f %f %f %f %c\n", &type, &rect_pos_with, &rect_pos_high, &rect_with, &rect_high, &rect_c)) != -1)
-	{
-		if (ret != 6 || draw() == -1)
-			return (ft_putstr(FILE_OCC));
-	}
-	for (int i = 0; i < bg_high; i++)
-	{
-		ft_putstr(zone[i]);
+		ft_putstr(paper[i]);
 		ft_putstr("\n");
 	}
-	return 0;
 }
 
