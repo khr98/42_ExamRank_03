@@ -1,82 +1,174 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include <stdio.h>
 #include <math.h>
+#include <unistd.h>
 
-#define ARG_ERR "Error: argument\n"
-#define FILE_ERR "Error: Operation file corrupted\n"
+typedef struct drawing drawing, *Pdrawing;
 
-int bgW;
-int bgH;
-char bgC;
+struct drawing {
+    int width;
+    int height;
+    char * matrice;
+};
 
-char type;
-float cX;
-float cY;
-float r;
-char color;
+typedef struct circle circle, *Pcircle;
 
-FILE *file;
-char **paper;
+struct circle {
+    char type;
+    float x;
+    float y;
+    float radius;
+    char color;
+};
 
-int ft_putstr(char *str)
+int ft_strlen(char *str)
 {
-	for (int i = 0; str[i]; i++)
+	int i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
+int get_info(FILE *file, drawing *drawing)
+
+{
+	int 	scan_ret;
+	char	*tmp;
+	int		i;
+	char	background;
+
+	scan_ret = fscanf(file,"%d %d %c\n", &drawing->width, &drawing->height, &background);
+	if (scan_ret == 3)
 	{
-		write(1, &str[i], 1);
+		if ((((drawing->width < 1) || (300 < drawing->width)) || (drawing->height < 1)) || (300 < drawing->height))
+			return (1);
+		tmp = (char *)malloc(drawing->width * drawing->height);
+		drawing->matrice = tmp;
+		if (!drawing->matrice)
+			return (1);
+		i = 0;
+		while (i < drawing->width * drawing->height)
+			drawing->matrice[i++] = background;
+		return (0);
 	}
 	return (1);
 }
 
-int isInCircle(int x, int y)
+float square(float a)
 {
-	float distance = sqrtf(powf(cX - x, 2.0) + powf(cY - y, 2.0));
-	if (distance < r)
+	return (a * a);
+}
+
+float sq_dist(float x1, float y1, float x2, float y2)
+{
+	float dist_x;
+	float dist_y;
+
+	dist_x = square(x1 - x2);
+	dist_y = square(y1 - y2);
+	return (dist_x + dist_y);
+}
+
+int is_in_circle(float x, float y, circle *circle)
+{
+	float	distance;
+	float	distance_sqrt;
+
+	distance_sqrt = sqrtf(sq_dist(x, y, circle->x, circle->y));
+	distance = distance_sqrt - circle->radius;
+	if (distance <= 0.00000000)
 	{
-		if (r - distance < 1.000000)
-			return (1);
-		return (2);
+		if (distance <= -1.00000000)
+			return (1); // Inside
+		return (2); // Border
 	}
 	return (0);
 }
 
-int main(int ac, char **av)
+void execute_one(circle *circle, drawing *drawing, int x, int y)
 {
-	if (ac != 2)
-		return (ft_putstr(ARG_ERR));
-	file = (fopen(av[1], "r"));
-	if (!file)
-		return (ft_putstr(FILE_ERR));
-	int ret = fscanf(file, "%d %d %c\n", &bgW, &bgH, &bgC);
-	if (ret != 3 || bgW < 1 || bgH < 1 || bgW > 300 || bgH > 300)
-		return (ft_putstr(FILE_ERR));
-	paper = malloc(bgH * sizeof(char *));
-	for (int i = 0; i < bgH; i++)
+	int is_in;
+
+	is_in = is_in_circle((float)x, (float)y, circle);
+	if ((is_in == 2) || ((is_in == 1 && (circle->type == 'C'))))
+		drawing->matrice[x + y * drawing->width] = circle->color;
+}
+
+int apply_op(circle *circle, drawing *drawing)
+{
+	int j;
+	int i;
+
+	if ((circle->radius <= 0.00000000) || ((circle->type != 'C' && (circle->type != 'c'))))
+		return (1);
+	i = 0;
+	while (i < drawing->width)
 	{
-		paper[i] = malloc(bgW * sizeof(char));
-		memset(paper[i], bgC, bgW);
-	}
-	while ((ret = fscanf(file, "%c %f %f %f %c\n", &type, &cX, &cY, &r, &color)) == 5)
-	{
-		if (r < 1 || (type != 'c' && type != 'C'))
-			return (ft_putstr(FILE_ERR));
-		for (int y = 0; y < bgH; y++)
-		{
-			for (int x = 0; x < bgW; x++)
-			{
-				int cond = isInCircle(x, y);
-				if (cond == 1 || (cond == 2 && type == 'C'))
-					paper[y][x] = color;
-			}
-		}
-	}
-	if (ret != -1)
-		return (ft_putstr(FILE_ERR));
-	for (int i = 0; i < bgH; i++)
-	{
-		ft_putstr(paper[i]);
-		ft_putstr("\n");
+		j = 0;
+		while (j < drawing->height)
+			execute_one(circle, drawing, i, j++);
+		i++;
 	}
 	return (0);
+}
+
+int print_info(drawing *drawing)
+{
+	int i;
+
+	i = 0;
+	while (i < drawing->height)
+	{
+		printf("%.*s\n", drawing->width, drawing->matrice + i * drawing->width);
+		i = i + 1;
+	}
+	return i;
+}
+
+int execute(FILE *file)
+{
+	int 	scan_ret;
+	circle 	circle;
+	drawing	drawing;
+
+	if (!get_info(file, &drawing))
+	{
+		scan_ret = fscanf(file,"%c %f %f %f %c\n", &circle.type, &circle.x, &circle.y, &circle.radius, &circle.color);
+		while (scan_ret == 5)
+		{
+			if (apply_op(&circle, &drawing))
+				return (1);
+			scan_ret = fscanf(file,"%c %f %f %f %c\n", &circle.type, &circle.x, &circle.y, &circle.radius, &circle.color);
+		}
+		if (scan_ret == -1)
+		{
+			print_info(&drawing);
+			return (0);
+		}
+		return (1);
+	}
+	return (1);
+}
+
+int main(int argc,char **argv)
+{
+	int i;
+	FILE *file;
+
+	if (argc == 2)
+	{
+		file = fopen(argv[1], "r");
+		if (file && !execute(file))
+			return (0);
+		i = ft_strlen("Error: Operation file corrupted\n");
+		write(1, "Error: Operation file corrupted\n", i);
+	}
+	else
+	{
+		i = ft_strlen("Error: argument\n");
+		write(1, "Error: argument\n", i);
+	}
+	return (1);
 }
