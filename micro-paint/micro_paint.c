@@ -41,8 +41,9 @@ int main (int ac, char **av)
 	zone = malloc(bgH * sizeof(char *));
 	for(int i= 0; i < bgH; i++)
 	{
-		zone[i] = malloc(bgW * sizeof(char));
+		zone[i] = malloc((bgW + 1) * sizeof(char));
 		memset(zone[i], bgC, bgW);
+		zone[i][bgW] = '\0';
 	}
 	while((ret = fscanf(file, "%c %f %f %f %f %c\n", &T, &X ,&Y ,&W, &H, &C)) == 6)
 	{
