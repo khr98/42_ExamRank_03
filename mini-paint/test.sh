@@ -13,6 +13,10 @@ echo "NO original"
 echo "Original"
 ./original ./test/ex_2
 echo ""
+echo "no original"
+./a.out ./test/ex_3
+echo "original"
+./original ./test/ex_3
 echo "TEST - <NULL>"
 echo "NO original"
 ./a.out

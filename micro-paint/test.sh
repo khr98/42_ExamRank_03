@@ -3,15 +3,17 @@ gcc criteria.c -o original -Wall -Wextra -Werror
 echo "-------------------------------------------------------"
 echo "TEST - <ex_1>"
 echo "내가한거"
-./a.out ./test/ex_1
+./a.out ./test/ex_1 > t1.txt
 echo "정답"
-./original ./test/ex_1
+./original ./test/ex_1 > t2.txt
+diff t1.txt t2.txt
 echo "-------------------------------------------------------"
 echo "TEST - <ex_2>"
 echo "내가한거"
-./a.out ./test/ex_2
+./a.out ./test/ex_2 > t1.txt
 echo "정답"
-./original ./test/ex_2
+./original ./test/ex_2 > t2.txt
+diff t1.txt t2.txt
 echo "-------------------------------------------------------"
 echo "TEST - <ex_3>"
 echo "내가한거"
